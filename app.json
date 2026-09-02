@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "RevTrack",
-    "slug": "RevTrack",
+    "slug": "revtrack",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,6 +10,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package":"com.vivekbhushan.revtrack",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
