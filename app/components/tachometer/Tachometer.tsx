@@ -1,19 +1,18 @@
 import { useState } from "react";
 import { LayoutChangeEvent, View } from "react-native";
-import Svg, { Circle, Path, Line, G } from "react-native-svg";
+import Svg, { Circle, Path, Line } from "react-native-svg";
 import type { TachometerConfig } from "../../types/tachometer";
-
-import { useEffect } from "react";
+import { Speed } from "./Speed";
+import { Gear } from "./Gear";
 
 import Animated, {
-  useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
   SharedValue,
-  withTiming,
-  withSpring,
   useFrameCallback,
 } from "react-native-reanimated";
+
+const gear = 4;
 
 const outerRadius = 450;
 const tickLength = 14;
@@ -28,19 +27,20 @@ const largeTickLength = 45;
 const largeTickWidth = 6;
 const largeTickInterval = 1000;
 
-const orangeRangeColor = "#da8b04";
-const orangeRangeTickColor = "#f5d909";
+const orangeRangeColor = "#da8b04a6";
+const orangeRangeTickColor = "#f5d909a6";
 
-const greenRangeColor = "#168213";
-const greenRangeTickColor = "#41bb41";
+const greenRangeColor = "#168213a6";
+const greenRangeTickColor = "#41bb41a6";
 
-const redRangeColor = "red";
-const redRangeTickColor = "#FF0000";
+const redRangeColor = "#ff0000a6";
+const redRangeTickColor = "#ff0000a6";
 
 const defaultTickColor = "#777";
 
 type TachometerProps = {
   rpm: SharedValue<number>;
+  speed: number;
   config: TachometerConfig;
 };
 
@@ -115,13 +115,16 @@ function describeArc(
   ].join(" ");
 }
 
-export function Tachometer({ rpm, config }: TachometerProps) {
+export function Tachometer({ rpm, speed, config }: TachometerProps) {
   const [diameter, setDiameter] = useState(0);
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
     setDiameter(Math.min(width, height));
   };
+
+  const gearWidth = diameter * 0.3;
+  const gearHeight = diameter * 0.34;
 
   const sweepAngle =
     config.startAngle >= config.endAngle
@@ -142,8 +145,8 @@ export function Tachometer({ rpm, config }: TachometerProps) {
     const subSteps = 4;
     const deltaTime = totalDeltaTime / subSteps;
 
-    const stiffness = 18;
-    const damping = 8;
+    const stiffness = 20;
+    const damping = 6;
 
     targetNeedleAngle.value = rpmToAngle(
       rpm.value,
@@ -191,7 +194,7 @@ export function Tachometer({ rpm, config }: TachometerProps) {
               cy="500"
               r="470"
               fill="none"
-              stroke="#333"
+              stroke="#33333343"
               strokeWidth="4"
             />
 
@@ -372,6 +375,21 @@ export function Tachometer({ rpm, config }: TachometerProps) {
 
             {/* Needle */}
           </Svg>
+          <Speed speed={speed} diameter={diameter} />
+
+          <View
+            style={{
+              position: "absolute",
+              width: gearWidth,
+              height: gearHeight,
+              left: diameter * 0.7,
+              top: diameter * 0.71,
+              zIndex: 10,
+            }}
+          >
+            <Gear gear="N" width={gearWidth} height={gearHeight} />
+          </View>
+
           <Animated.View
             style={[
               {
