@@ -2,7 +2,7 @@ import { View } from "react-native";
 import { Tachometer } from "../components/tachometer/Tachometer";
 import { V15_TACHOMETER_CONFIG } from "../config/bajajv15";
 
-import { useTestRpmSource } from "../sources/rpm";
+import { useEspRpmSource } from "../sources/rpm";
 
 import { useFonts } from "expo-font";
 import { Rajdhani_300Light } from "@expo-google-fonts/rajdhani";
@@ -14,7 +14,7 @@ export function InstrumentScreen() {
     ExoItalic: Exo_300Light_Italic,
   });
 
-  const { rpm } = useTestRpmSource();
+  const { rpm } = useEspRpmSource();
 
   if (!fontsLoaded) {
     return null;
