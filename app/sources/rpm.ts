@@ -6,6 +6,7 @@ import {
     withRepeat,
     withTiming,
 } from "react-native-reanimated";
+
 import { RevTrackWebSocket } from "../services/websockets";
 import { useEspDiscovery } from "./espDiscovery";
 
@@ -33,9 +34,9 @@ export function useTestRpmSource(): RpmSource {
 
 export function useEspRpmSource(): RpmSource {
     const rpm = useSharedValue(0);
-    // const { address } = useEspDiscovery();
-    const address = "10.121.102.102";
-    useEspDiscovery();
+
+    const { address } = useEspDiscovery();
+
     useEffect(() => {
         if (!address) {
             return;
@@ -45,20 +46,55 @@ export function useEspRpmSource(): RpmSource {
 
         console.log("Connecting to ESP:", url);
 
+        let lastTelemetryTime = Date.now();
+        let recovering = false;
+
         const socket = new RevTrackWebSocket({
             onTelemetry: (message) => {
+                lastTelemetryTime = Date.now();
+                recovering = false;
+
                 rpm.value = message.rpm;
+            },
+
+            onStatusChange: (status) => {
+                console.log(
+                    "ESP WebSocket status:",
+                    status,
+                );
+
+                if (status === "connected") {
+                    lastTelemetryTime = Date.now();
+                }
             },
         });
 
         socket.connect(url);
 
+        const watchdog = setInterval(() => {
+            const elapsed =
+                Date.now() - lastTelemetryTime;
+
+            if (elapsed > 1500 && !recovering) {
+                console.log(
+                    "ESP telemetry timeout:",
+                    elapsed,
+                    "ms",
+                );
+
+                recovering = true;
+
+                rpm.value = 0;
+
+                socket.reconnect();
+            }
+        }, 500);
+
         return () => {
+            clearInterval(watchdog);
             socket.disconnect();
         };
     }, [address]);
-
-
 
     return { rpm };
 }
